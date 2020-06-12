@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 COPY package.json .
 COPY tsconfig.json .
 RUN npm install
+RUN npm -g install typescript
 ADD . /usr/src/app
 RUN npm run start
-CMD ["npm", "start"]
+CMD ["npm", "start", "node", "dist/index.js"]
