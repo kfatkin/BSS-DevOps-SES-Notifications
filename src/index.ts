@@ -11,15 +11,37 @@ async function main(sqsObject: AWS.SQS, dynamoObject: AWS.DynamoDB) {
     VisibilityTimeout: 10,
     WaitTimeSeconds: 15,
   };
-  const response = await sqsObject.receiveMessage(sqsParams).promise();
-  if (response?.Messages) {
-    console.log(response.Messages);
+  const sqsReceiveResponse = await sqsObject
+    .receiveMessage(sqsParams)
+    .promise();
+  if (sqsReceiveResponse?.Messages) {
+    console.log(sqsReceiveResponse.Messages);
+    for (let message of sqsReceiveResponse.Messages) {
+      const dynamoParams = {
+        Item: {
+          messageid: {
+            S: message.MessageId,
+          },
+          messageBody: {
+            S: message.Body,
+          },
+        },
+        TableName: 'BSS-DevOps-DynamoDB-SES-Notifications',
+      };
+      const dynamoResponse = await dynamoObject.putItem(dynamoParams).promise();
+      console.log(dynamoResponse);
+      const sqsDeleteParams = {
+        QueueUrl:
+          'https://sqs.us-east-1.amazonaws.com/880392359248/BSS-DevOps-SES-Notifications',
+        ReceiptHandle: message.ReceiptHandle,
+      };
+      const sqsDeleteResponse = await sqsObject
+        .deleteMessage(sqsDeleteParams)
+        .promise();
+    }
   } else {
     console.log('No messages found');
   }
-
-  const dynamoParams = {};
-  const dynamoResponse = await dynamoObject.
 }
 
 main(SQS, DynamoDB);
