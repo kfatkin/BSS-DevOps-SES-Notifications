@@ -18,6 +18,7 @@ async function main(sqsObject: AWS.SQS, dynamoObject: AWS.DynamoDB) {
     if (sqsReceiveResponse?.Messages) {
       console.log(sqsReceiveResponse.Messages);
       for (let message of sqsReceiveResponse.Messages) {
+        console.log(message);
         // console.log(message.Body);
         let jsonMessageBody = JSON.parse(message.Body);
         let dynamoParams = {
